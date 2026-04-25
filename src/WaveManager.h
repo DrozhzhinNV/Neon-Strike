@@ -15,7 +15,7 @@ public:
     void startNextWave();
 
 
-    std::vector<Enemy> update(float dt);
+    std::vector<Enemy> update(float dt); //Спавн врагов по таймеру
 
     bool isWaveFinished(int aliveEnemies) const;
 

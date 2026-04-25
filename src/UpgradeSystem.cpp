@@ -137,29 +137,37 @@ void UpgradeSystem::drawCard(sf::RenderWindow& window,
 void UpgradeSystem::draw(sf::RenderWindow& window) const {
     if (!active) return;
 
+    // 🎯 СОХРАНЯЕМ текущую камеру и переключаемся на UI-вид
+    sf::View savedView = window.getView();
+    window.setView(window.getDefaultView());
 
+    // --- Фон ---
     sf::RectangleShape overlay({(float)C::WINDOW_W, (float)C::WINDOW_H});
     overlay.setFillColor(sf::Color(0, 0, 0, 170));
     window.draw(overlay);
 
+    // --- Заголовок ---
     if (fontLoaded) {
         sf::Text header("-- Choose an Upgrade --", font, 34);
         header.setFillColor(sf::Color(255, 220, 80));
-
         header.setPosition(C::WINDOW_W / 2.f - 190.f, 70.f);
         window.draw(header);
     }
 
-
+    // --- Карточки ---
     const float cardW = 220.f, cardH = 270.f;
     const float startX = (C::WINDOW_W - (cardW * 3 + 40.f)) / 2.f;
     const float cardY  = (C::WINDOW_H - cardH) / 2.f;
 
+    // 🖱️ Мышь в координатах окна (не мира!)
     sf::Vector2i mp = sf::Mouse::getPosition(window);
-    sf::Vector2f mousePos((float)mp.x, (float)mp.y);
+    sf::Vector2f mousePos((float)mp.x, (float)mp.y);  // getDefaultView: пиксели == координаты
 
     for (int i = 0; i < (int)offered.size(); ++i) {
         sf::FloatRect rect(startX + i * (cardW + 20.f), cardY, cardW, cardH);
         drawCard(window, offered[i], rect, rect.contains(mousePos));
     }
+
+    // ♻️ ВОССТАНАВЛИВАЕМ камеру игры
+    window.setView(savedView);
 }

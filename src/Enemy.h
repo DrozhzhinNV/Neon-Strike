@@ -28,7 +28,7 @@ public:
     sf::Vector2f getPosition()const { return body.getPosition(); }
     float        getRadius()  const { return body.getRadius(); }
 
-
+    //Задержка контактного урона
     float damageCooldown = 0.f;
 
 private:

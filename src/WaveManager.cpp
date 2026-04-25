@@ -13,6 +13,7 @@ WaveManager::WaveManager()
 
 void WaveManager::startNextWave() {
     ++currentWave;
+
     // С каждой волной спавн ускоряется
     spawnInterval = std::max(0.2f, 0.8f - (float)currentWave * 0.04f);
     buildSpawnQueue(currentWave);
@@ -23,9 +24,9 @@ void WaveManager::buildSpawnQueue(int wave) {
     while (!spawnQueue.empty()) spawnQueue.pop();
 
     // Кол-во каждого типа
-    int basic = 3 + wave * 2;
-    int fast  = (wave >= 3) ? 1 + (wave - 3) / 2 : 0;
-    int tank  = (wave >= 5) ? 1 + (wave - 5) / 3 : 0;
+    int basic = 3 + wave * 2; //обычные враги
+    int fast  = (wave >= 3) ? 1 + (wave - 3) / 2 : 0; // быстрые враги
+    int tank  = (wave >= 5) ? 1 + (wave - 5) / 3 : 0; // толстые враги
 
     for (int i = 0; i < basic; ++i) spawnQueue.push(EnemyType::BASIC);
     for (int i = 0; i < fast;  ++i) spawnQueue.push(EnemyType::FAST);
@@ -34,6 +35,7 @@ void WaveManager::buildSpawnQueue(int wave) {
 
 std::vector<Enemy> WaveManager::update(float dt) {
     std::vector<Enemy> newEnemies;
+    //спавним, пока таймер меньше интервала
     if (spawnQueue.empty()) return newEnemies;
 
     spawnTimer += dt;
@@ -47,9 +49,12 @@ std::vector<Enemy> WaveManager::update(float dt) {
     return newEnemies;
 }
 
+
 bool WaveManager::isWaveFinished(int aliveEnemies) const {
     return spawnQueue.empty() && aliveEnemies == 0;
 }
+
+//Рандомная позиция спавна врага
 
 sf::Vector2f WaveManager::randomEdgePos() {
 

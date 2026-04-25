@@ -41,27 +41,33 @@ Enemy::Enemy(EnemyType t, sf::Vector2f startPos) : type(t) {
     }
 
     body.setOutlineThickness(2.5f);
-    body.setOrigin(body.getRadius(), body.getRadius());
-    body.setPosition(startPos);
+    body.setOrigin(body.getRadius(), body.getRadius()); 
+    body.setPosition(startPos); //Центр врага в центре кружка
 }
 
+//Преследование
 void Enemy::update(float dt, sf::Vector2f playerPos) {
 
     if (damageCooldown > 0.f) damageCooldown -= dt;
 
-
+    //Устанавливаем направление
     sf::Vector2f dir = playerPos - body.getPosition();
     float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
     if (len > 0.f) dir /= len;
 
+    //Двигаемся
     body.move(dir * speed * dt);
 }
 
+//Здесь обрабатываем урон
 bool Enemy::takeDamage(float amount) {
     health -= amount;
     if (health < 0.f) health = 0.f;
     return health <= 0.f; 
 }
+
+
+//Реализация полоски здоровья
 
 void Enemy::drawHealthBar(sf::RenderWindow& window) const {
 
@@ -80,11 +86,12 @@ void Enemy::drawHealthBar(sf::RenderWindow& window) const {
     bg.setFillColor(sf::Color(70, 70, 70));
     window.draw(bg);
 
-
+    //Заполняем полоску
     float ratio = health / maxHealth;
     sf::RectangleShape fill({barW * ratio, barH});
     fill.setPosition(bx, by);
 
+    //Градиент цвета при уменьшении здоровья
     auto g = (sf::Uint8)(200.f * ratio);
     auto r2= (sf::Uint8)(50.f + 200.f * (1.f - ratio));
     fill.setFillColor(sf::Color(r2, g, 30));

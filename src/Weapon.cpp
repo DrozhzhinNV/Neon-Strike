@@ -6,7 +6,7 @@
 #include <random>
 
 
-//  Weapon.cpp — стрельба
+//  Weapon.cpp — стрельба (прописываем логику)
 
 
 
@@ -22,13 +22,14 @@ static sf::Vector2f rotateVec(sf::Vector2f v, float angle) {
     return { v.x * c - v.y * s, v.x * s + v.y * c };
 }
 
-
+//Случайный разброс при стрельбе
 static float randSpread(float range) {
 
     return ((float)std::rand() / RAND_MAX * 2.f - 1.f) * range;
 }
 
-// -----------------------------------------------------------
+
+//Метод для создания пулек
 
 std::vector<Bullet> Weapon::fire(sf::Vector2f pos,
                                   sf::Vector2f direction,
@@ -38,9 +39,9 @@ std::vector<Bullet> Weapon::fire(sf::Vector2f pos,
     fireCooldown = 1.f / fireRate; 
 
     for (int i = 0; i < bulletCount; ++i) {
-        float angle       = randSpread(spread);
-        sf::Vector2f dir  = normalize(rotateVec(direction, angle));
-        sf::Vector2f vel  = dir * bulletSpeed;
+        float angle       = randSpread(spread); //угол
+        sf::Vector2f dir  = normalize(rotateVec(direction, angle)); //позиция
+        sf::Vector2f vel  = dir * bulletSpeed; //скорость
 
         result.emplace_back(pos, vel, damage * damageMult, true);
     }

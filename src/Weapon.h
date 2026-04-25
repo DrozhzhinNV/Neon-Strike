@@ -23,7 +23,7 @@ struct Weapon {
     int         bulletCount;  
     float       spread;     
 
-    float fireCooldown = 0.f; 
+    float fireCooldown = 0.f;  //Задержка стрельбы
 
     bool canFire() const { return fireCooldown <= 0.f; }
 
@@ -31,7 +31,9 @@ struct Weapon {
     void updateCooldown(float dt) {
         if (fireCooldown > 0.f) fireCooldown -= dt;
     }
+    
 
+    //Генерация пулек
     std::vector<Bullet> fire(sf::Vector2f pos,
                              sf::Vector2f direction,
                              float damageMult = 1.f);

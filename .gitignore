@@ -1,0 +1,25 @@
+# Папка сборки
+build/
+out/
+
+# Сохранения (личный файл, не в репо)
+save.dat
+
+# Visual Studio
+.vs/
+*.user
+*.aps
+
+# CLion
+.idea/
+cmake-build-*/
+
+# Скомпилированные файлы
+*.exe
+*.obj
+*.o
+*.dll
+
+# Временные файлы Windows
+Thumbs.db
+desktop.ini
