@@ -11,19 +11,19 @@ WaveShooter/
 ├── .gitignore
 ├── README.md
 ├── assets/
-│   ├── font.ttf          # шрифт (добавить вручную, см. ниже)
+│   ├── font.ttf          # шрифт
 │   └── README_font.txt
 └── src/
     ├── Constants.h       # все числовые константы игры
     ├── main.cpp          # точка входа
-    ├── Game.h / .cpp     # главный игровой цикл           [Разраб. А]
-    ├── Player.h / .cpp   # игрок, движение, стрельба      [Разраб. А]
-    ├── Bullet.h / .cpp   # пуля                           [Разраб. А]
-    ├── SaveSystem.h/.cpp # сохранение/загрузка            [Разраб. А]
-    ├── Enemy.h / .cpp    # враги трёх типов               [Разраб. Б]
-    ├── Weapon.h / .cpp   # виды оружия                    [Разраб. Б]
-    ├── WaveManager.h/.cpp# управление волнами             [Разраб. Б]
-    ├── ResourceDrop.h/.cpp  # выпадающие ресурсы          [Разраб. Б]
-    ├── UpgradeSystem.h/.cpp # меню прокачки               [Разраб. Б]
-    └── HUD.h / .cpp      # интерфейс (HP, волна, очки)    [Разраб. Б]
+    ├── Game.h / .cpp     # главный игровой цикл          
+    ├── Player.h / .cpp   # игрок, движение, стрельба     
+    ├── Bullet.h / .cpp   # пуля                           
+    ├── SaveSystem.h/.cpp # сохранение/загрузка            
+    ├── Enemy.h / .cpp    # враги трёх типов              
+    ├── Weapon.h / .cpp   # виды оружия                   
+    ├── WaveManager.h/.cpp# управление волнами             
+    ├── ResourceDrop.h/.cpp  # выпадающие ресурсы          
+    ├── UpgradeSystem.h/.cpp # меню прокачки              
+    └── HUD.h / .cpp      # интерфейс (HP, волна, очки) 
 ```
