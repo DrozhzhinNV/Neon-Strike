@@ -6,11 +6,9 @@
 #include <random>
 #include <ctime>
 
-
-//  UpgradeSystem.cpp — меню прокачек
-
-
-UpgradeSystem::UpgradeSystem() : active(false), fontLoaded(false) {
+UpgradeSystem::UpgradeSystem(sf::RenderWindow& window)
+    : m_window(window), active(false), fontLoaded(false)
+{
     if (font.loadFromFile("assets/font.ttf"))
         fontLoaded = true;
     else if (font.loadFromFile("C:/Windows/Fonts/arial.ttf"))
@@ -80,8 +78,12 @@ void UpgradeSystem::show(Player& player) {
     active = true;
 }
 
-bool UpgradeSystem::handleClick(sf::Vector2f mousePos, Player& player) {
+bool UpgradeSystem::handleClick(Player& player) {
     if (!active) return false;
+
+    // Получаем позицию мыши самостоятельно, используя сохранённое окно
+    sf::Vector2i mp = sf::Mouse::getPosition(m_window);
+    sf::Vector2f mousePos((float)mp.x, (float)mp.y);
 
     const float cardW = 220.f, cardH = 270.f;
     const float startX = (C::WINDOW_W - (cardW * 3 + 40.f)) / 2.f;
@@ -99,75 +101,65 @@ bool UpgradeSystem::handleClick(sf::Vector2f mousePos, Player& player) {
     return false;
 }
 
-void UpgradeSystem::drawCard(sf::RenderWindow& window,
-                              const Upgrade& u,
+void UpgradeSystem::drawCard(const Upgrade& u,
                               sf::FloatRect rect,
                               bool hovered) const
 {
-
     sf::RectangleShape card({rect.width, rect.height});
     card.setPosition(rect.left, rect.top);
     card.setFillColor(hovered ? sf::Color(60, 80, 120) : sf::Color(30, 40, 70));
     card.setOutlineThickness(2.f);
     card.setOutlineColor(hovered ? sf::Color(150, 210, 255) : sf::Color(70, 90, 130));
-    window.draw(card);
+    m_window.draw(card);
 
     if (!fontLoaded) return;
-
 
     sf::Text title(u.name, font, 22);
     title.setFillColor(sf::Color(200, 230, 255));
     title.setPosition(rect.left + 14.f, rect.top + 20.f);
-    window.draw(title);
-
+    m_window.draw(title);
 
     sf::Text desc(u.description, font, 15);
     desc.setFillColor(sf::Color(140, 170, 210));
     desc.setPosition(rect.left + 14.f, rect.top + 60.f);
-    window.draw(desc);
+    m_window.draw(desc);
 
     if (hovered) {
         sf::Text hint("Click to select", font, 13);
         hint.setFillColor(sf::Color(255, 220, 80));
         hint.setPosition(rect.left + 14.f, rect.top + rect.height - 30.f);
-        window.draw(hint);
+        m_window.draw(hint);
     }
 }
 
-void UpgradeSystem::draw(sf::RenderWindow& window) const {
+void UpgradeSystem::draw() const {
     if (!active) return;
 
-    // 🎯 СОХРАНЯЕМ текущую камеру и переключаемся на UI-вид
-    sf::View savedView = window.getView();
-    window.setView(window.getDefaultView());
+    sf::View savedView = m_window.getView();
+    m_window.setView(m_window.getDefaultView());
 
-    // --- Фон ---
     sf::RectangleShape overlay({(float)C::WINDOW_W, (float)C::WINDOW_H});
     overlay.setFillColor(sf::Color(0, 0, 0, 170));
-    window.draw(overlay);
+    m_window.draw(overlay);
 
-    // --- Заголовок ---
     if (fontLoaded) {
         sf::Text header("-- Choose an Upgrade --", font, 34);
         header.setFillColor(sf::Color(255, 220, 80));
         header.setPosition(C::WINDOW_W / 2.f - 190.f, 70.f);
-        window.draw(header);
+        m_window.draw(header);
     }
 
-    // --- Карточки ---
     const float cardW = 220.f, cardH = 270.f;
     const float startX = (C::WINDOW_W - (cardW * 3 + 40.f)) / 2.f;
     const float cardY  = (C::WINDOW_H - cardH) / 2.f;
 
-    // 🖱️ Мышь в координатах окна (не мира!)
-    sf::Vector2i mp = sf::Mouse::getPosition(window);
-    sf::Vector2f mousePos((float)mp.x, (float)mp.y);  // getDefaultView: пиксели == координаты
+    sf::Vector2i mp = sf::Mouse::getPosition(m_window);
+    sf::Vector2f mousePos((float)mp.x, (float)mp.y);
 
     for (int i = 0; i < (int)offered.size(); ++i) {
         sf::FloatRect rect(startX + i * (cardW + 20.f), cardY, cardW, cardH);
-        drawCard(window, offered[i], rect, rect.contains(mousePos));
+        drawCard(offered[i], rect, rect.contains(mousePos));
     }
 
-    // ♻️ ВОССТАНАВЛИВАЕМ камеру игры
-    window.setView(savedView);
+    m_window.setView(savedView);
 }
