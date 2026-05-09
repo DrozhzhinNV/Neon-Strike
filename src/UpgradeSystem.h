@@ -4,8 +4,7 @@
 #include <vector>
 #include <functional>
 
-
-class Player; 
+class Player;
 
 struct Upgrade {
     std::string name;
@@ -15,27 +14,22 @@ struct Upgrade {
 
 class UpgradeSystem {
 public:
-    UpgradeSystem();
+    explicit UpgradeSystem(sf::RenderWindow& window);
 
     bool isActive() const { return active; }
 
-
     void show(Player& player);
-    bool handleClick(sf::Vector2f mousePos, Player& player);
+    bool handleClick(Player& player);   // больше не требует позиции мыши
 
-    void draw(sf::RenderWindow& window) const;
+    void draw() const;                  // больше не требует окна
 
 private:
-    bool                active;
+    sf::RenderWindow& m_window;
+    bool active;
     std::vector<Upgrade> offered;
-    sf::Font             font;
-    bool                 fontLoaded;
+    sf::Font font;
+    bool fontLoaded;
 
     std::vector<Upgrade> buildAll(const Player& player);
-
-
-    void drawCard(sf::RenderWindow& window,
-                  const Upgrade& u,
-                  sf::FloatRect  rect,
-                  bool           hovered) const;
+    void drawCard(const Upgrade& u, sf::FloatRect rect, bool hovered) const;
 };
