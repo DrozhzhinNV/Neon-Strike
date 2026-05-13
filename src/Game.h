@@ -39,8 +39,8 @@ private:
     UpgradeSystem    upgradeSystem;
     ParticleSystem   particles;    // система частиц
 
-    std::vector<Enemy>        enemies;
-    std::vector<Bullet>       bullets;
+    std::vector<Enemy> enemies;
+    std::vector<Bullet> bullets;
     std::vector<ResourceDrop> drops;
 
     GameState gameState;
@@ -62,7 +62,6 @@ private:
     void processEvents();
     void update(float dt);
     void render();
-
     void updateBullets(float dt);
     void updateEnemies(float dt);
     void checkCollisions();
