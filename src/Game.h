@@ -8,7 +8,13 @@
 #include "UpgradeSystem.h"
 #include "HUD.h"
 #include "SaveSystem.h"
+#include "Particle.h"
 #include <vector>
+
+// ============================================================
+//  Game.h — центральный класс.
+//  Разработчик А.
+// ============================================================
 
 enum class GameState {
     PLAYING,
@@ -25,32 +31,38 @@ public:
 
 private:
     sf::RenderWindow window;
-    sf::View camera;
+    sf::View         camera;
 
-    Player player;
-    WaveManager waveManager;
-    HUD hud;                       // будет инициализирован в конструкторе
-    UpgradeSystem upgradeSystem;   // будет инициализирован в конструкторе
+    Player           player;
+    WaveManager      waveManager;
+    HUD              hud;
+    UpgradeSystem    upgradeSystem;
+    ParticleSystem   particles;    // система частиц
 
-    std::vector<Enemy> enemies;
-    std::vector<Bullet> bullets;
+    std::vector<Enemy>        enemies;
+    std::vector<Bullet>       bullets;
     std::vector<ResourceDrop> drops;
 
     GameState gameState;
-    int score;
-    float waveClearTimer;
+    int       score;
+    float     waveClearTimer;
 
-    sf::RectangleShape mapBackground;
-    sf::RectangleShape mapBorder;
+    // Фон: тайловый спрайт
+    sf::Texture          bgTexture;
+    bool                 bgTexLoaded = false;
+    sf::RectangleShape   mapBackground;
+    sf::RectangleShape   mapBorder;
+    sf::Sprite           bgSprite;
 
     SaveData savedData;
 
     sf::Font overlayFont;
-    bool overlayFontLoaded;
+    bool     overlayFontLoaded;
 
     void processEvents();
     void update(float dt);
     void render();
+
     void updateBullets(float dt);
     void updateEnemies(float dt);
     void checkCollisions();
@@ -61,4 +73,6 @@ private:
     void saveGame();
     void applySaveData();
     void drawOverlay(const std::string& msg, sf::Color color);
+    void loadAllTextures();
+    void spawnEnemyWithTexture(Enemy& e);
 };
