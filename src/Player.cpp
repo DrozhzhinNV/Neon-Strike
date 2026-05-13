@@ -4,26 +4,47 @@
 #include <cmath>
 #include <algorithm>
 
+
 Player::Player()
     : Entity(C::PLAYER_MAX_HP),
       speed(C::PLAYER_SPEED), currentWeaponIdx(0), resources(0),
       speedMult(1.f), damageMult(1.f), maxHealthBonus(0.f)
 {
-    body.setPointCount(3);
-    body.setPoint(0, { 20.f,   0.f});
-    body.setPoint(1, {-14.f, -13.f});
-    body.setPoint(2, {-14.f,  13.f});
-    body.setOrigin(3.f, 0.f);
-    body.setFillColor(sf::Color(50, 200, 255));
-    body.setOutlineThickness(2.f);
-    body.setOutlineColor(sf::Color(200, 240, 255));
-    body.setPosition(C::MAP_W / 2.f, C::MAP_H / 2.f);
+    // --- Запасная геометрия (если текстура не загрузилась) ---
+    fallbackBody.setPointCount(3);
+    fallbackBody.setPoint(0, { 20.f,   0.f});
+    fallbackBody.setPoint(1, {-14.f, -13.f});
+    fallbackBody.setPoint(2, {-14.f,  13.f});
+    fallbackBody.setOrigin(3.f, 0.f);
+    fallbackBody.setFillColor(sf::Color(50, 200, 255));
+    fallbackBody.setOutlineThickness(2.f);
+    fallbackBody.setOutlineColor(sf::Color(200, 240, 255));
 
-    gunDot.setRadius(3.f);
-    gunDot.setOrigin(3.f, 3.f);
-    gunDot.setFillColor(sf::Color(255, 255, 100));
+    fallbackDot.setRadius(3.f);
+    fallbackDot.setOrigin(3.f, 3.f);
+    fallbackDot.setFillColor(sf::Color(255, 255, 100));
+
+    // Спрайт: позиция — центр карты
+    sprite.setPosition(C::MAP_W / 2.f, C::MAP_H / 2.f);
+    fallbackBody.setPosition(C::MAP_W / 2.f, C::MAP_H / 2.f);
 
     weapons.push_back(Weapon::makePistol());
+}
+
+bool Player::loadTexture(const std::string& path) {
+    textureLoaded = texture.loadFromFile(path);
+    if (textureLoaded) {
+        texture.setSmooth(true);
+        sprite.setTexture(texture);
+        // Центрировать origin на середине текстуры
+        auto sz = texture.getSize();
+        sprite.setOrigin(sz.x / 2.f, sz.y / 2.f);
+        // Подобрать масштаб под радиус игрока
+        float desired = C::PLAYER_RADIUS * 2.4f;
+        float scale   = desired / sz.x;
+        sprite.setScale(scale, scale);
+    }
+    return textureLoaded;
 }
 
 void Player::handleInput(float dt, const sf::RenderWindow& window) {
@@ -36,7 +57,9 @@ void Player::handleInput(float dt, const sf::RenderWindow& window) {
     float len = std::sqrt(move.x * move.x + move.y * move.y);
     if (len > 0.f) move /= len;
 
-    body.move(move * speed * speedMult * dt);
+    sf::Vector2f delta = move * speed * speedMult * dt;
+    sprite.move(delta);
+    fallbackBody.move(delta);
     clampToMap();
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num1)) switchWeapon(0);
@@ -44,21 +67,27 @@ void Player::handleInput(float dt, const sf::RenderWindow& window) {
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num3)) switchWeapon(2);
 
     weapons[currentWeaponIdx].updateCooldown(dt);
+
+    // Уменьшить таймер вспышки урона
+    if (hitFlashTimer > 0.f) hitFlashTimer -= dt;
+
     updateAim(window);
 }
 
 void Player::updateAim(const sf::RenderWindow& window) {
     sf::Vector2i mousePixel = sf::Mouse::getPosition(window);
     sf::Vector2f mouseWorld = window.mapPixelToCoords(mousePixel);
-    sf::Vector2f dir = mouseWorld - body.getPosition();
+    sf::Vector2f pos = sprite.getPosition();
+    sf::Vector2f dir = mouseWorld - pos;
     float angle = std::atan2(dir.y, dir.x) * 180.f / C::PI;
-    body.setRotation(angle);
+
+    sprite.setRotation(angle);
+    fallbackBody.setRotation(angle);
 
     float rad = angle * C::PI / 180.f;
-    sf::Vector2f tip = body.getPosition()
-                     + sf::Vector2f(std::cos(rad) * 23.f,
-                                    std::sin(rad) * 23.f);
-    gunDot.setPosition(tip);
+    sf::Vector2f tip = pos + sf::Vector2f(std::cos(rad) * 23.f,
+                                          std::sin(rad) * 23.f);
+    fallbackDot.setPosition(tip);
 }
 
 std::vector<Bullet> Player::tryShoot(const sf::RenderWindow& window) {
@@ -68,21 +97,19 @@ std::vector<Bullet> Player::tryShoot(const sf::RenderWindow& window) {
 
     sf::Vector2i mousePixel = sf::Mouse::getPosition(window);
     sf::Vector2f mouseWorld = window.mapPixelToCoords(mousePixel);
-    sf::Vector2f dir = mouseWorld - body.getPosition();
+    sf::Vector2f dir = mouseWorld - sprite.getPosition();
     float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
     if (len < 1.f) return {};
     dir /= len;
-
-    return w.fire(body.getPosition(), dir, damageMult);
+    return w.fire(sprite.getPosition(), dir, damageMult);
 }
 
 void Player::takeDamage(float amount) {
     applyDamage(amount);
+    hitFlashTimer = 0.12f;  // 120 мс вспышки белого цвета
 }
 
-void Player::addResource(int amount) {
-    resources += amount;
-}
+void Player::addResource(int amount) { resources += amount; }
 
 void Player::switchWeapon(int index) {
     if (index >= 0 && index < (int)weapons.size())
@@ -90,28 +117,28 @@ void Player::switchWeapon(int index) {
 }
 
 void Player::addWeapon(Weapon w) {
-    for (auto& existing : weapons)
-        if (existing.type == w.type) return;
+    for (auto& ex : weapons) if (ex.type == w.type) return;
     weapons.push_back(w);
 }
 
 void Player::clampToMap() {
-    sf::Vector2f pos = body.getPosition();
+    sf::Vector2f pos = sprite.getPosition();
     float r = C::PLAYER_RADIUS;
     pos.x = std::clamp(pos.x, r, C::MAP_W - r);
     pos.y = std::clamp(pos.y, r, C::MAP_H - r);
-    body.setPosition(pos);
+    sprite.setPosition(pos);
+    fallbackBody.setPosition(pos);
 }
 
 void Player::drawHealthBar(sf::RenderWindow& window) const {
     const float barW = 50.f, barH = 6.f;
-    sf::Vector2f pos = body.getPosition();
+    sf::Vector2f pos = sprite.getPosition();
     float bx = pos.x - barW / 2.f;
     float by = pos.y - 32.f;
 
     sf::RectangleShape bg({barW, barH});
     bg.setPosition(bx, by);
-    bg.setFillColor(sf::Color(80, 0, 0));
+    bg.setFillColor(sf::Color(80, 0, 0, 180));
     window.draw(bg);
 
     float total = getMaxHealth();
@@ -122,8 +149,36 @@ void Player::drawHealthBar(sf::RenderWindow& window) const {
     window.draw(fill);
 }
 
+// Player.cpp — исправленная версия draw()
 void Player::draw(sf::RenderWindow& window) const {
-    window.draw(body);
-    window.draw(gunDot);
+    if (textureLoaded) {
+        // Создаём копию спрайта — её можно модифицировать
+        sf::Sprite drawSprite = sprite;
+
+        // Применяем вспышку урона к копии
+        if (hitFlashTimer > 0.f) {
+            float t = hitFlashTimer / 0.12f;
+            sf::Uint8 flash = (sf::Uint8)(t * 200.f);
+            drawSprite.setColor(sf::Color(255, 255 - flash/2, 255 - flash, 255));
+        } else {
+            drawSprite.setColor(sf::Color::White);
+        }
+
+        // Ореол (с блендом Add)
+        sf::RenderStates glow;
+        glow.blendMode = sf::BlendAdd;
+        
+        sf::Sprite halo = drawSprite;
+        halo.setScale(drawSprite.getScale() * 1.35f);
+        halo.setColor(sf::Color(40, 130, 200, 60));
+        window.draw(halo, glow);
+        
+        // Рисуем модифицированную копию
+        window.draw(drawSprite);
+    } else {
+        // Запасной вариант — геометрия
+        window.draw(fallbackBody);
+        window.draw(fallbackDot);
+    }
     drawHealthBar(window);
 }
