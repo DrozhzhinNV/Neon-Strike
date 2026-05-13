@@ -9,6 +9,7 @@
 #include "HUD.h"
 #include "SaveSystem.h"
 #include "Particle.h"
+#include "TileMap.h"
 #include <vector>
 
 // ============================================================
@@ -16,13 +17,7 @@
 //  Разработчик А.
 // ============================================================
 
-enum class GameState {
-    PLAYING,
-    WAVE_CLEAR,
-    UPGRADE_MENU,
-    GAME_OVER,
-    WIN
-};
+enum class GameState { PLAYING, WAVE_CLEAR, UPGRADE_MENU, GAME_OVER };
 
 class Game {
 public:
@@ -37,24 +32,16 @@ private:
     WaveManager      waveManager;
     HUD              hud;
     UpgradeSystem    upgradeSystem;
-    ParticleSystem   particles;    // система частиц
+    ParticleSystem   particles;
+    TileMap          tileMap;        // карта с тайлами и объектами
 
-    std::vector<Enemy> enemies;
-    std::vector<Bullet> bullets;
+    std::vector<Enemy>        enemies;
+    std::vector<Bullet>       bullets;
     std::vector<ResourceDrop> drops;
 
     GameState gameState;
     int       score;
     float     waveClearTimer;
-
-    // Фон: тайловый спрайт
-    sf::Texture          bgTexture;
-    bool                 bgTexLoaded = false;
-    sf::RectangleShape   mapBackground;
-    sf::RectangleShape   mapBorder;
-    sf::Sprite           bgSprite;
-
-    SaveData savedData;
 
     sf::Font overlayFont;
     bool     overlayFontLoaded;
@@ -62,16 +49,20 @@ private:
     void processEvents();
     void update(float dt);
     void render();
+
     void updateBullets(float dt);
     void updateEnemies(float dt);
     void checkCollisions();
     void collectDrops();
     void removeDeadObjects();
     void applyCamera();
-    void drawBackground();
     void saveGame();
-    void applySaveData();
+    void applySaveData(const SaveData& d);
     void drawOverlay(const std::string& msg, sf::Color color);
     void loadAllTextures();
     void spawnEnemyWithTexture(Enemy& e);
+
+    // Проверить столкновение круга с объектами карты
+    // Возвращает вектор выталкивания (или {0,0} если нет пересечения)
+    sf::Vector2f resolveMapCollision(sf::Vector2f pos, float radius);
 };

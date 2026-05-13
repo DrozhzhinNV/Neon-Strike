@@ -16,6 +16,8 @@ set(SOURCES
     src/UpgradeSystem.cpp
     src/SaveSystem.cpp
     src/Particle.cpp
+    src/TileMap.cpp
+    src/MapObject.cpp
 )
 
 add_executable(WaveShooter ${SOURCES})

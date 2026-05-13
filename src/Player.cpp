@@ -4,6 +4,10 @@
 #include <cmath>
 #include <algorithm>
 
+// ============================================================
+//  Player.cpp — управление, отрисовка, стрельба.
+//  Разработчик А.
+// ============================================================
 
 Player::Player()
     : Entity(C::PLAYER_MAX_HP),
@@ -149,32 +153,28 @@ void Player::drawHealthBar(sf::RenderWindow& window) const {
     window.draw(fill);
 }
 
-// Player.cpp — исправленная версия draw()
 void Player::draw(sf::RenderWindow& window) const {
     if (textureLoaded) {
-        // Создаём копию спрайта — её можно модифицировать
-        sf::Sprite drawSprite = sprite;
-
-        // Применяем вспышку урона к копии
+        // Вычисляем цвет отрисовки
+        sf::Color drawColor = sf::Color::White;
         if (hitFlashTimer > 0.f) {
             float t = hitFlashTimer / 0.12f;
-            sf::Uint8 flash = (sf::Uint8)(t * 200.f);
-            drawSprite.setColor(sf::Color(255, 255 - flash/2, 255 - flash, 255));
-        } else {
-            drawSprite.setColor(sf::Color::White);
+            sf::Uint8 flash = static_cast<sf::Uint8>(t * 200.f);
+            drawColor = sf::Color(255, 255 - flash/2, 255 - flash, 255);
         }
 
-        // Ореол (с блендом Add)
+        // 🔹 Ореол (свечение) — локальная копия, можно менять
         sf::RenderStates glow;
         glow.blendMode = sf::BlendAdd;
-        
-        sf::Sprite halo = drawSprite;
-        halo.setScale(drawSprite.getScale() * 1.35f);
-        halo.setColor(sf::Color(40, 130, 200, 60));
+        sf::Sprite halo = sprite;  // копия
+        halo.setScale(sprite.getScale() * 1.35f);
+        halo.setColor(sf::Color(40, 130, 200, 60));  // ✅ меняем копию
         window.draw(halo, glow);
-        
-        // Рисуем модифицированную копию
-        window.draw(drawSprite);
+
+        // 🔹 Основной спрайт — тоже копия с нужным цветом
+        sf::Sprite drawSprite = sprite;  // ✅ локальная копия
+        drawSprite.setColor(drawColor);  // ✅ меняем копию, не оригинал
+        window.draw(drawSprite);         // рисуем копию
     } else {
         // Запасной вариант — геометрия
         window.draw(fallbackBody);
