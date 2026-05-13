@@ -2,13 +2,14 @@
 #include <SFML/Graphics.hpp>
 #include "Entity.h"
 
-enum class EnemyType {
-    BASIC, FAST, TANK
-};
+enum class EnemyType { BASIC, FAST, TANK };
 
 class Enemy : public Entity {
 public:
     Enemy(EnemyType type, sf::Vector2f startPos);
+
+    // Загрузить текстуру для конкретного типа
+    bool loadTexture(const std::string& path);
 
     void update(float dt, sf::Vector2f playerPos);
     void draw(sf::RenderWindow& window) const override;
@@ -24,12 +25,22 @@ public:
 
     float damageCooldown = 0.f;
 
+    // Цвет типа — используется для частиц взрыва
+    sf::Color typeColor() const;
+
 private:
     EnemyType       type;
-    sf::CircleShape body;
-    float           speed;
-    float           contactDamage;
-    int             reward;
+    sf::CircleShape body;         // запасная форма
+    sf::Texture     texture;
+    sf::Sprite      sprite;
+    bool            textureLoaded = false;
+
+    float speed;
+    float contactDamage;
+    int   reward;
+
+    // Угол вращения (враги медленно крутятся)
+    float rotationAngle = 0.f;
 
     void drawHealthBar(sf::RenderWindow& window) const;
 };

@@ -11,6 +11,9 @@ class Player : public Entity {
 public:
     Player();
 
+    // Загрузить текстуру спрайта
+    bool loadTexture(const std::string& path);
+
     void handleInput(float dt, const sf::RenderWindow& window);
     void draw(sf::RenderWindow& window) const override;
 
@@ -22,24 +25,32 @@ public:
     void switchWeapon(int index);
     void addWeapon(Weapon w);
 
-    bool         isAlive()      const { return health > 0.f; }
-    float        getMaxHealth() const override { return maxHealth + maxHealthBonus; }
-    int          getResources() const { return resources; }
-    int          getCurrentWeaponIdx() const { return currentWeaponIdx; }
-    const Weapon& getCurrentWeapon()  const { return weapons[currentWeaponIdx]; }
-    sf::Vector2f getPosition()  const override { return body.getPosition(); }
-    float        getRadius()    const override { return C::PLAYER_RADIUS; }
-    int          getWeaponCount()const{ return (int)weapons.size(); }
+    bool          isAlive()       const { return health > 0.f; }
+    float         getMaxHealth()  const override { return maxHealth + maxHealthBonus; }
+    int           getResources()  const { return resources; }
+    int           getCurrentWeaponIdx() const { return currentWeaponIdx; }
+    const Weapon& getCurrentWeapon()    const { return weapons[currentWeaponIdx]; }
+    sf::Vector2f  getPosition()   const override { return sprite.getPosition(); }
+    float         getRadius()     const override { return C::PLAYER_RADIUS; }
+    int           getWeaponCount()const { return (int)weapons.size(); }
 
-    float speedMult     = 1.f;
-    float damageMult    = 1.f;
-    float maxHealthBonus= 0.f;
+    float speedMult      = 1.f;
+    float damageMult     = 1.f;
+    float maxHealthBonus = 0.f;
 
     void clampToMap();
 
+    // Вспышка при получении урона (таймер белой подсветки)
+    float hitFlashTimer = 0.f;
+
 private:
-    sf::ConvexShape body;
-    sf::CircleShape gunDot;
+    sf::Texture     texture;
+    sf::Sprite      sprite;
+    bool            textureLoaded = false;
+
+    // Запасная геометрия на случай отсутствия текстуры
+    sf::ConvexShape fallbackBody;
+    sf::CircleShape fallbackDot;
 
     float speed;
 

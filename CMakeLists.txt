@@ -15,6 +15,7 @@ set(SOURCES
     src/HUD.cpp
     src/UpgradeSystem.cpp
     src/SaveSystem.cpp
+    src/Particle.cpp
 )
 
 add_executable(WaveShooter ${SOURCES})
