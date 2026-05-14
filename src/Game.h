@@ -9,13 +9,13 @@
 #include "HUD.h"
 #include "SaveSystem.h"
 #include "Particle.h"
+#include "TileMap.h"
 #include <vector>
 
 // ============================================================
 //  Game.h — центральный класс.
 //  Разработчик А.
 // ============================================================
-
 enum class GameState {
     PLAYING,
     WAVE_CLEAR,
@@ -32,15 +32,15 @@ public:
 private:
     sf::RenderWindow window;
     sf::View         camera;
-
     Player           player;
     WaveManager      waveManager;
     HUD              hud;
     UpgradeSystem    upgradeSystem;
-    ParticleSystem   particles;    // система частиц
+    ParticleSystem   particles;
+    TileMap          tileMap;        // карта с тайлами и объектами
 
-    std::vector<Enemy> enemies;
-    std::vector<Bullet> bullets;
+    std::vector<Enemy>        enemies;
+    std::vector<Bullet>       bullets;
     std::vector<ResourceDrop> drops;
 
     GameState gameState;
@@ -62,16 +62,17 @@ private:
     void processEvents();
     void update(float dt);
     void render();
+
     void updateBullets(float dt);
     void updateEnemies(float dt);
     void checkCollisions();
     void collectDrops();
     void removeDeadObjects();
     void applyCamera();
-    void drawBackground();
     void saveGame();
-    void applySaveData();
+    void applySaveData(const SaveData& d);
     void drawOverlay(const std::string& msg, sf::Color color);
     void loadAllTextures();
     void spawnEnemyWithTexture(Enemy& e);
+    sf::Vector2f resolveMapCollision(sf::Vector2f pos, float radius);
 };

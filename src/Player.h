@@ -39,6 +39,10 @@ public:
     float maxHealthBonus = 0.f;
 
     void clampToMap();
+    void setPosition(sf::Vector2f pos) { sprite.setPosition(pos); fallbackBody.setPosition(pos); }
+
+    // Вспышка при получении урона (таймер белой подсветки)
+    float hitFlashTimer = 0.f;
 
     // Вспышка при получении урона (таймер белой подсветки)
     float hitFlashTimer = 0.f;

@@ -18,36 +18,38 @@ static float dist(sf::Vector2f a, sf::Vector2f b) {
 
 // ─── Конструктор ────────────────────────────────────────────
 Game::Game()
-    : window(sf::VideoMode(C::WINDOW_W, C::WINDOW_H), "Neon Strike",
-             sf::Style::Titlebar | sf::Style::Close),
-      camera(sf::FloatRect(0.f, 0.f, (float)C::WINDOW_W, (float)C::WINDOW_H)),
-      gameState(GameState::PLAYING),
-      score(0), waveClearTimer(0.f), overlayFontLoaded(false),
-      hud(window), upgradeSystem(window)
+: window(sf::VideoMode(C::WINDOW_W, C::WINDOW_H), "Neon Strike",
+         sf::Style::Titlebar | sf::Style::Close),
+  camera(sf::FloatRect(0.f,0.f,(float)C::WINDOW_W,(float)C::WINDOW_H)),
+  gameState(GameState::PLAYING),
+  score(0), waveClearTimer(0.f), overlayFontLoaded(false),
+  hud(window), upgradeSystem(window)
 {
     std::srand((unsigned)std::time(nullptr));
     window.setFramerateLimit(C::FPS_LIMIT);
 
-    if (overlayFont.loadFromFile("assets/font.ttf"))
-        overlayFontLoaded = true;
-    else if (overlayFont.loadFromFile("C:/Windows/Fonts/arial.ttf"))
-        overlayFontLoaded = true;
+    if (!overlayFont.loadFromFile("assets/font.ttf"))
+        overlayFont.loadFromFile("C:/Windows/Fonts/arial.ttf");
+    overlayFontLoaded = true;
 
-    // Фон (запасной, если текстура не загружена)
-    mapBackground.setSize({C::MAP_W, C::MAP_H});
+    // Запасной фон и границы карты
+    mapBackground.setSize({(float)C::MAP_W, (float)C::MAP_H});
     mapBackground.setPosition(0.f, 0.f);
     mapBackground.setFillColor(sf::Color(18, 24, 18));
-
-    mapBorder.setSize({C::MAP_W, C::MAP_H});
+    mapBorder.setSize({(float)C::MAP_W, (float)C::MAP_H});
     mapBorder.setPosition(0.f, 0.f);
     mapBorder.setFillColor(sf::Color::Transparent);
     mapBorder.setOutlineThickness(6.f);
     mapBorder.setOutlineColor(sf::Color(0, 200, 100, 180));
 
-    // Загрузить все текстуры
     loadAllTextures();
 
-    if (SaveSystem::load(savedData)) applySaveData();
+    // Генерация карты
+    tileMap.generate(12345);
+
+    // Загрузка сохранения
+    if (SaveSystem::load(savedData)) applySaveData(savedData);
+
     waveManager.startNextWave();
 }
 
@@ -57,10 +59,11 @@ void Game::loadAllTextures() {
     Bullet::loadPlayerTexture("assets/bullet_player.png");
     ResourceDrop::loadTexture("assets/resource.png");
     particles.loadTexture("assets/particle.png");
+    tileMap.loadTextures();
 
     // Тайловый фон
     if (bgTexture.loadFromFile("assets/bg_tile.png")) {
-        bgTexture.setRepeated(true);   // повторяем тайл по всей карте
+        bgTexture.setRepeated(true);
         bgTexture.setSmooth(false);
         bgSprite.setTexture(bgTexture);
         bgSprite.setTextureRect(sf::IntRect(0, 0, (int)C::MAP_W, (int)C::MAP_H));
@@ -79,17 +82,16 @@ void Game::spawnEnemyWithTexture(Enemy& e) {
 }
 
 // ─── Применить сохранение ────────────────────────────────────
-void Game::applySaveData() {
-    score = savedData.score;
-    if (savedData.hasShotgun)    player.addWeapon(Weapon::makeShotgun());
-    if (savedData.hasMachineGun) player.addWeapon(Weapon::makeMachineGun());
-    player.speedMult      = 1.f + savedData.speedLevel  * 0.20f;
-    player.damageMult     = 1.f + savedData.damageLevel * 0.25f;
-    player.maxHealthBonus =       savedData.healthLevel * 50.f;
-    player.addResource(savedData.resources);
-    player.heal(savedData.playerHP - player.getHealth());
-    for (int i = 0; i < savedData.wave - 1; ++i)
-        waveManager.startNextWave();
+void Game::applySaveData(const SaveData& d) {
+    score = d.score;
+    if (d.hasShotgun)    player.addWeapon(Weapon::makeShotgun());
+    if (d.hasMachineGun) player.addWeapon(Weapon::makeMachineGun());
+    player.speedMult      = 1.f + d.speedLevel  * 0.20f;
+    player.damageMult     = 1.f + d.damageLevel * 0.25f;
+    player.maxHealthBonus =       d.healthLevel * 50.f;
+    player.addResource(d.resources);
+    player.heal(d.playerHP - player.getHealth());
+    for (int i = 0; i < d.wave - 1; ++i) waveManager.startNextWave();
 }
 
 void Game::saveGame() {
@@ -122,35 +124,50 @@ void Game::run() {
 void Game::processEvents() {
     sf::Event event;
     while (window.pollEvent(event)) {
-        if (event.type == sf::Event::Closed) { saveGame(); window.close(); }
-
-        if (event.type == sf::Event::KeyPressed &&
-            event.key.code == sf::Keyboard::Escape)
-        { saveGame(); window.close(); }
-
+        if (event.type == sf::Event::Closed ||
+           (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape)) {
+            saveGame(); window.close();
+        }
         if (gameState == GameState::GAME_OVER &&
             event.type == sf::Event::KeyPressed &&
-            event.key.code == sf::Keyboard::Enter)
-        { window.close(); }
-
+            event.key.code == sf::Keyboard::Enter) {
+            window.close();
+        }
         if (gameState == GameState::UPGRADE_MENU &&
             event.type == sf::Event::MouseButtonPressed &&
-            event.mouseButton.button == sf::Mouse::Left)
-        {
+            event.mouseButton.button == sf::Mouse::Left) {
             if (upgradeSystem.handleClick(player)) {
                 gameState = GameState::PLAYING;
-                enemies.clear();
-                bullets.clear();
+                enemies.clear(); bullets.clear();
                 waveManager.startNextWave();
             }
         }
     }
 }
 
+// ─── Коллизия круга с объектами карты ────────────────────────
+sf::Vector2f Game::resolveMapCollision(sf::Vector2f pos, float radius) {
+    sf::Vector2f push(0.f, 0.f);
+    for (const auto& obj : tileMap.getObjects()) {
+        if (!obj.solid) continue;
+        sf::FloatRect b = obj.bounds;
+        float nearX = std::clamp(pos.x, b.left, b.left + b.width);
+        float nearY = std::clamp(pos.y, b.top,  b.top  + b.height);
+        float dx = pos.x - nearX;
+        float dy = pos.y - nearY;
+        float d  = std::sqrt(dx*dx + dy*dy);
+        if (d < radius && d > 0.001f) {
+            float overlap = radius - d;
+            push.x += (dx / d) * overlap;
+            push.y += (dy / d) * overlap;
+        }
+    }
+    return push;
+}
+
 // ─── Обновление ──────────────────────────────────────────────
 void Game::update(float dt) {
-    if (gameState == GameState::GAME_OVER ||
-        gameState == GameState::UPGRADE_MENU) return;
+    if (gameState == GameState::GAME_OVER || gameState == GameState::UPGRADE_MENU) return;
 
     if (gameState == GameState::WAVE_CLEAR) {
         waveClearTimer -= dt;
@@ -161,11 +178,17 @@ void Game::update(float dt) {
         return;
     }
 
+    // Движение игрока
     player.handleInput(dt, window);
+    sf::Vector2f push = resolveMapCollision(player.getPosition(), player.getRadius());
+    if (push.x != 0.f || push.y != 0.f) {
+        player.setPosition(player.getPosition() + push);
+        player.clampToMap();
+    }
 
+    // Стрельба
     auto newBullets = player.tryShoot(window);
     for (auto& b : newBullets) bullets.push_back(b);
-
     updateBullets(dt);
 
     // Спавн новых врагов + загрузка текстур
@@ -174,15 +197,13 @@ void Game::update(float dt) {
         spawnEnemyWithTexture(e);
         enemies.push_back(e);
     }
-
     updateEnemies(dt);
     checkCollisions();
     collectDrops();
     removeDeadObjects();
 
-    // Обновить частицы
+    // Обновить частицы и монетки
     particles.update(dt);
-    // Обновить монетки (анимация)
     for (auto& d : drops) if (!d.collected) d.update(dt);
 
     applyCamera();
@@ -203,11 +224,19 @@ void Game::updateBullets(float dt) {
 
 void Game::updateEnemies(float dt) {
     sf::Vector2f pp = player.getPosition();
-    for (auto& e : enemies) if (e.isAlive()) e.update(dt, pp);
+    for (auto& e : enemies) {
+        if (!e.isAlive()) continue;
+        e.update(dt, pp);
+        // Выталкивать врагов из объектов карты
+        sf::Vector2f ep = resolveMapCollision(e.getPosition(), e.getRadius());
+        if (ep.x != 0.f || ep.y != 0.f)
+            e.pushOut(ep); // Требует метода pushOut в Enemy.h
+    }
 }
 
 // ─── Коллизии ────────────────────────────────────────────────
 void Game::checkCollisions() {
+    // Пули -> Враги
     for (auto& bullet : bullets) {
         if (!bullet.active || !bullet.fromPlayer) continue;
         for (auto& enemy : enemies) {
@@ -216,14 +245,9 @@ void Game::checkCollisions() {
             if (d < bullet.getRadius() + enemy.getRadius()) {
                 bool died = enemy.takeDamage(bullet.damage);
                 bullet.active = false;
-
-                // Частицы попадания
                 particles.spawnHit(bullet.getCenter());
-
                 if (died) {
-                    // Большой взрыв при смерти
-                    particles.spawnExplosion(enemy.getPosition(),
-                                             enemy.typeColor(), 22);
+                    particles.spawnExplosion(enemy.getPosition(), enemy.typeColor(), 22);
                     drops.emplace_back(enemy.getPosition(), enemy.getReward());
                     score += enemy.getReward() * 10;
                 }
@@ -232,13 +256,13 @@ void Game::checkCollisions() {
         }
     }
 
+    // Враги -> Игрок
     for (auto& enemy : enemies) {
         if (!enemy.isAlive() || enemy.damageCooldown > 0.f) continue;
         float d = dist(enemy.getPosition(), player.getPosition());
         if (d < enemy.getRadius() + player.getRadius()) {
             player.takeDamage(enemy.getDamage());
             enemy.damageCooldown = 0.8f;
-            // Маленький взрыв при ударе по игроку
             particles.spawnHit(player.getPosition(), 4);
         }
     }
@@ -268,31 +292,10 @@ void Game::removeDeadObjects() {
 void Game::applyCamera() {
     sf::Vector2f pos = player.getPosition();
     float hw = C::WINDOW_W / 2.f, hh = C::WINDOW_H / 2.f;
-    pos.x = std::clamp(pos.x, hw, C::MAP_W - hw);
-    pos.y = std::clamp(pos.y, hh, C::MAP_H - hh);
+    pos.x = std::clamp(pos.x, hw, (float)C::MAP_W - hw);
+    pos.y = std::clamp(pos.y, hh, (float)C::MAP_H - hh);
     camera.setCenter(pos);
     window.setView(camera);
-}
-
-// ─── Фон ─────────────────────────────────────────────────────
-void Game::drawBackground() {
-    if (bgTexLoaded) {
-        window.draw(bgSprite);
-    } else {
-        window.draw(mapBackground);
-        const float step = 100.f;
-        sf::RectangleShape line;
-        line.setFillColor(sf::Color(35, 52, 35));
-        line.setSize({C::MAP_W, 1.f});
-        for (float y = step; y < C::MAP_H; y += step) {
-            line.setPosition(0.f, y); window.draw(line);
-        }
-        line.setSize({1.f, C::MAP_H});
-        for (float x = step; x < C::MAP_W; x += step) {
-            line.setPosition(x, 0.f); window.draw(line);
-        }
-    }
-    window.draw(mapBorder);
 }
 
 // ─── Оверлей ─────────────────────────────────────────────────
@@ -300,7 +303,6 @@ void Game::drawOverlay(const std::string& msg, sf::Color color) {
     if (!overlayFontLoaded) return;
     sf::View sv = window.getView();
     window.setView(window.getDefaultView());
-
     sf::RectangleShape ov({(float)C::WINDOW_W, (float)C::WINDOW_H});
     ov.setFillColor(sf::Color(0, 0, 0, 160));
     window.draw(ov);
@@ -308,9 +310,8 @@ void Game::drawOverlay(const std::string& msg, sf::Color color) {
     sf::Text text(msg, overlayFont, 52);
     text.setFillColor(color);
     sf::FloatRect b = text.getLocalBounds();
-    text.setPosition((C::WINDOW_W - b.width) / 2.f,
-                     (C::WINDOW_H - b.height) / 2.f - 30.f);
-    // Тень
+    text.setPosition((C::WINDOW_W - b.width) / 2.f, (C::WINDOW_H - b.height) / 2.f - 30.f);
+
     sf::Text shadow = text;
     shadow.setFillColor(sf::Color(0,0,0,180));
     shadow.move(3.f, 3.f);
@@ -322,32 +323,30 @@ void Game::drawOverlay(const std::string& msg, sf::Color color) {
 
 // ─── Отрисовка ───────────────────────────────────────────────
 void Game::render() {
-    window.clear(sf::Color(8, 10, 8));
+    window.clear(sf::Color(30, 35, 30));
 
-    drawBackground();
-
-    // Монетки
+    // 1. Земля (тайлы)
+    tileMap.drawGround(window);
+    // 2. Монетки (на земле)
     for (auto& drop : drops) drop.draw(window);
-    // Враги
-    for (auto& enemy : enemies) enemy.draw(window);
-    // Пули
-    for (auto& bullet : bullets) bullet.draw(window);
-    // Частицы (поверх пуль, под игроком)
+    // 3. Статические объекты карты
+    tileMap.drawObjects(window);
+    // 4. Враги
+    for (auto& e : enemies) e.draw(window);
+    // 5. Частицы
     particles.draw(window);
-    // Игрок
+    // 6. Пули
+    for (auto& b : bullets) b.draw(window);
+    // 7. Игрок
     player.draw(window);
-
-    // HUD и апгрейды — экранное пространство
+    // 8. HUD + апгрейды
     hud.draw(player, waveManager, score);
     upgradeSystem.draw();
 
     if (gameState == GameState::WAVE_CLEAR)
-        drawOverlay("Wave " + std::to_string(waveManager.getCurrentWave())
-                    + " Complete!", sf::Color(80, 255, 120));
-
+        drawOverlay("Wave " + std::to_string(waveManager.getCurrentWave()) + " Complete!", sf::Color(80, 255, 120));
     if (gameState == GameState::GAME_OVER)
-        drawOverlay("GAME OVER\n\nScore: " + std::to_string(score)
-                    + "\n\nPress ENTER to exit", sf::Color(255, 80, 80));
+        drawOverlay("GAME OVER\nScore: " + std::to_string(score) + "\nPress ENTER to exit", sf::Color(255, 80, 80));
 
     window.display();
 }
