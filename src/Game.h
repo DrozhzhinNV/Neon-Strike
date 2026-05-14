@@ -16,8 +16,13 @@
 //  Game.h — центральный класс.
 //  Разработчик А.
 // ============================================================
-
-enum class GameState { PLAYING, WAVE_CLEAR, UPGRADE_MENU, GAME_OVER };
+enum class GameState {
+    PLAYING,
+    WAVE_CLEAR,
+    UPGRADE_MENU,
+    GAME_OVER,
+    WIN
+};
 
 class Game {
 public:
@@ -27,7 +32,6 @@ public:
 private:
     sf::RenderWindow window;
     sf::View         camera;
-
     Player           player;
     WaveManager      waveManager;
     HUD              hud;
@@ -42,6 +46,15 @@ private:
     GameState gameState;
     int       score;
     float     waveClearTimer;
+
+    // Фон: тайловый спрайт
+    sf::Texture          bgTexture;
+    bool                 bgTexLoaded = false;
+    sf::RectangleShape   mapBackground;
+    sf::RectangleShape   mapBorder;
+    sf::Sprite           bgSprite;
+
+    SaveData savedData;
 
     sf::Font overlayFont;
     bool     overlayFontLoaded;
@@ -61,8 +74,5 @@ private:
     void drawOverlay(const std::string& msg, sf::Color color);
     void loadAllTextures();
     void spawnEnemyWithTexture(Enemy& e);
-
-    // Проверить столкновение круга с объектами карты
-    // Возвращает вектор выталкивания (или {0,0} если нет пересечения)
     sf::Vector2f resolveMapCollision(sf::Vector2f pos, float radius);
 };

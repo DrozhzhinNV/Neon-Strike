@@ -44,6 +44,9 @@ public:
     // Вспышка при получении урона (таймер белой подсветки)
     float hitFlashTimer = 0.f;
 
+    // Вспышка при получении урона (таймер белой подсветки)
+    float hitFlashTimer = 0.f;
+
 private:
     sf::Texture     texture;
     sf::Sprite      sprite;
