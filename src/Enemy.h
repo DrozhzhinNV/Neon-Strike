@@ -29,9 +29,6 @@ public:
     // Цвет типа — используется для частиц взрыва
     sf::Color typeColor() const;
 
-    // Цвет типа — используется для частиц взрыва
-    sf::Color typeColor() const;
-
 private:
     EnemyType       type;
     sf::CircleShape body;         // запасная форма
