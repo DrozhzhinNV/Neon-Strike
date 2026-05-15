@@ -4,33 +4,33 @@
 #include <vector>
 #include <queue>
 
-//  WaveManager.h — управление волнами врагов.
-
+// ============================================================
+//  WaveManager.h — управление волнами + босс каждые 5 волн.
+//  Разработчик Б.
+// ============================================================
 
 class WaveManager {
 public:
     WaveManager();
 
-    // Запустить следующую волну
     void startNextWave();
 
-
-    std::vector<Enemy> update(float dt); //Спавн врагов по таймеру
+    // Возвращает список врагов для спавна в этом кадре
+    std::vector<Enemy> update(float dt);
 
     bool isWaveFinished(int aliveEnemies) const;
 
-    bool isSpawning()      const { return !spawnQueue.empty(); }
-    int  getCurrentWave()  const { return currentWave; }
+    bool isSpawning()     const { return !spawnQueue.empty(); }
+    int  getCurrentWave() const { return currentWave; }
+    bool isBossWave()     const;   // true = текущая волна — волна босса
 
 private:
     int   currentWave;
     float spawnTimer;
-    float spawnInterval; 
+    float spawnInterval;
 
     std::queue<EnemyType> spawnQueue;
 
     void buildSpawnQueue(int wave);
-
-  
     static sf::Vector2f randomEdgePos();
 };
