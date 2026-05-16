@@ -43,7 +43,9 @@ Enemy::Enemy(EnemyType t, sf::Vector2f startPos)
             health = maxHealth = C::BOSS_HP;
             speed = C::BOSS_SPEED; contactDamage = C::BOSS_DAMAGE;
             reward = C::BOSS_REWARD;
-            body.setRadius(C::BOSS_RADIUS);
+            // Радиус коллизии МЕНЬШЕ визуального — босс не застревает в деревьях.
+            // Спрайт всё равно рисуется крупным через BOSS_SPRITE_SCALE.
+            body.setRadius(C::BOSS_RADIUS * 0.55f);
             body.setFillColor(sf::Color(140,0,0,230));
             body.setOutlineColor(sf::Color(255,40,40,255));
             animSpeed = 0.18f;
@@ -157,7 +159,9 @@ bool Enemy::loadTexture(const std::string& path, int fw, int fh) {
         sprite.setOrigin(fw / 2.f, fh / 2.f);
         sprite.setTextureRect(sf::IntRect(0, 0, fw, fh));
         sprite.setPosition(body.getPosition());
-        float scale = (body.getRadius() * 2.4f) / (float)fw;
+        // Масштаб: ENEMY_SPRITE_SCALE чтобы анимация была заметна
+        float desired = body.getRadius() * C::ENEMY_SPRITE_SCALE;
+        float scale   = desired / (float)fw;
         sprite.setScale(scale, scale);
     }
     return textureLoaded;

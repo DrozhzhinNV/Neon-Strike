@@ -5,20 +5,22 @@
 class Player;
 class WaveManager;
 
+// ============================================================
+//  HUD.h — интерфейс: HP, волна, патроны, перезарядка.
+//  Разработчик Б.
+// ============================================================
 class HUD {
 public:
-    explicit HUD(sf::RenderWindow& window);
-
-    void draw(const Player& player,
-              const WaveManager& wave,
-              int score) const;
+    HUD(sf::RenderWindow& window);
+    void draw(const Player& player, const WaveManager& wave, int score) const;
 
 private:
-    sf::RenderWindow& m_window;
+    sf::RenderWindow& window;
     sf::Font font;
     bool fontLoaded;
 
-    void drawHealthBar(float hp, float maxHp) const;
+    void drawHealthBar(const Player& player) const;
+    void drawAmmoBar(const Player& player) const;
     void drawText(const std::string& text, sf::Vector2f pos,
                   unsigned int size,
                   sf::Color color = sf::Color::White) const;

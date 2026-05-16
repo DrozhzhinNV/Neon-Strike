@@ -10,15 +10,23 @@
 #include "SaveSystem.h"
 #include "Particle.h"
 #include "TileMap.h"
+#include "WeaponShop.h"
+#include "Weather.h"
 #include <vector>
 #include <string>
 
 // ============================================================
-//  Game.h — центральный класс.
+//  Game.h
 //  Разработчик А.
 // ============================================================
 
-enum class GameState { PLAYING, WAVE_CLEAR, UPGRADE_MENU, GAME_OVER };
+enum class GameState {
+    PLAYING,
+    PAUSED_SHOP,   // пауза — открыт магазин оружия
+    WAVE_CLEAR,
+    UPGRADE_MENU,
+    GAME_OVER
+};
 
 class Game {
 public:
@@ -33,6 +41,7 @@ private:
     WaveManager   waveManager;
     HUD           hud;
     UpgradeSystem upgradeSystem;
+    WeaponShop    weaponShop;
     ParticleSystem particles;
     TileMap        tileMap;
 
@@ -44,7 +53,6 @@ private:
     int       score;
     float     waveClearTimer;
 
-    // Запасной фон
     sf::RectangleShape mapBackground;
     sf::RectangleShape mapBorder;
 
@@ -52,12 +60,15 @@ private:
     sf::Font  overlayFont;
     bool      overlayFontLoaded;
 
-    // Полоска HP босса (рисуется поверх HUD)
+    // Босс
     bool  bossAlive      = false;
-    float bossMaxHP      = 0.f;
-    float bossCurrentHP  = 0.f;
-    // Сообщение при убийстве босса
+    bool  bossWaveActive = false; // true пока идёт волна босса
+    float bossMaxHP     = 0.f;
+    float bossCurrentHP = 0.f;
     float bossKillMsgTimer = 0.f;
+
+    // Tab — состояние клавиши (edge-detect)
+    bool tabWasPressed = false;
 
     void processEvents();
     void update(float dt);
@@ -75,5 +86,10 @@ private:
     void loadAllTextures();
     void spawnEnemyWithTexture(Enemy& e);
     sf::Vector2f resolveMapCollision(sf::Vector2f pos, float radius);
-    void drawBossBar();   // полоска HP босса вверху экрана
+    void drawBossBar();
+
+    // Выпасть монеткам и патронам из врага
+    void spawnDrops(const Enemy& enemy);
+
+    Weather weather;
 };

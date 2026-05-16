@@ -16,6 +16,8 @@ set(SOURCES
     src/UpgradeSystem.cpp
     src/SaveSystem.cpp
     src/Particle.cpp
+    src/WeaponShop.cpp
+    src/Weather.cpp
     src/TileMap.cpp
     src/MapObject.cpp
 )
