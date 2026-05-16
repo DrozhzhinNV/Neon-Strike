@@ -14,11 +14,12 @@ namespace C {
     constexpr float PLAYER_RADIUS   = 16.f;
     constexpr float BULLET_RADIUS   = 4.f;
 
-<<<<<<< HEAD
     // Размеры спрайтов — множитель от радиуса
-    constexpr float PLAYER_SPRITE_SCALE = 5.5f;  // видимый размер игрока
-    constexpr float ENEMY_SPRITE_SCALE  = 5.0f;  // видимый размер врага
+    constexpr float PLAYER_SPRITE_SCALE = 5.5f;
+    constexpr float ENEMY_SPRITE_SCALE  = 5.0f;
 
+    // ── Враги ─────────────────────────────────────────
+    constexpr float BASIC_RADIUS    = 18.f;
     constexpr float BASIC_SPEED     = 90.f;
     constexpr float BASIC_HP        = 50.f;
     constexpr float BASIC_DAMAGE    = 15.f;
@@ -46,7 +47,7 @@ namespace C {
 
     constexpr float RESOURCE_RADIUS = 8.f;
 
-    // ── Обоймы и перезарядка ──────────────────────────────
+    // ── Обоймы и перезарядка ─────────────────────────
     constexpr int   PISTOL_MAG      = 12;
     constexpr int   PISTOL_TOTAL    = 60;
     constexpr float PISTOL_RELOAD   = 1.4f;
@@ -59,14 +60,10 @@ namespace C {
     constexpr int   MG_TOTAL        = 150;
     constexpr float MG_RELOAD       = 2.5f;
 
-    // ── Магазин оружия ────────────────────────────────────
-    // Стоимость апгрейда (уровень 1/2/3)
+    // ── Магазин оружия ───────────────────────────────
     constexpr int   SHOP_COST_1     = 40;
     constexpr int   SHOP_COST_2     = 80;
     constexpr int   SHOP_COST_3     = 130;
     constexpr int   SHOP_MAX_LEVEL  = 3;
-=======
-    constexpr float BASIC_RADIUS    = 18.f;
-    constexpr float BASIC_SPEED     = 90.f;
-    constexpr float BASIC_HP        = 50.f;
-    constexpr float BASIC_DAMAGE    = 15.f;
+
+} // ← ОБЯЗАТЕЛЬНО: закрываем namespace C

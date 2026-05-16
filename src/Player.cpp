@@ -148,10 +148,7 @@ void Player::setPosition(sf::Vector2f pos) {
     sprite.setPosition(pos);
     fallbackBody.setPosition(pos);
 }
-void Player::setPosition(sf::Vector2f pos) {
-    sprite.setPosition(pos);
-    fallbackBody.setPosition(pos);
-}
+
 
 // ── Отрисовка HP ─────────────────────────────────────────────
 void Player::drawHealthBar(sf::RenderWindow& window) const {
