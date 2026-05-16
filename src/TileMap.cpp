@@ -274,7 +274,8 @@ void TileMap::placeObjects(unsigned int seed) {
         if (grid[row][col] != 1) continue; // не трава
 
         float scale = 0.9f + (std::rand() % 4) * 0.08f;
-        if (tryPlace(MapObjType::TREE, texTree, x, y, scale, true))
+        // Деревья не блокируют движение (solid=false) — босс не застревает
+        if (tryPlace(MapObjType::TREE, texTree, x, y, scale, false))
             ++treesPlaced;
     }
 
