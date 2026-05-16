@@ -202,7 +202,7 @@ void Game::update(float dt) {
         gameState == GameState::UPGRADE_MENU ||
         gameState == GameState::PAUSED_SHOP) return;
 
-    if (gameState == GameState::WAVE_CLEAR) {
+    if (gameState==GameState::WAVE_CLEAR) {
         waveClearTimer -= dt;
         if (bossKillMsgTimer > 0.f) bossKillMsgTimer -= dt;
         weather.update(dt);  // погода продолжает идти во время паузы
@@ -277,7 +277,6 @@ void Game::update(float dt) {
 void Game::updateBullets(float dt) {
     for (auto& b:bullets) b.update(dt);
 }
-
 void Game::updateEnemies(float dt) {
     for (auto& e:enemies) {
         if (!e.isAlive()) continue;
@@ -344,7 +343,6 @@ void Game::collectDrops() {
         }
     }
 }
-
 void Game::removeDeadObjects() {
     bullets.erase(std::remove_if(bullets.begin(),bullets.end(),
         [](const Bullet& b){return !b.active;}),bullets.end());
@@ -353,7 +351,6 @@ void Game::removeDeadObjects() {
     drops.erase(std::remove_if(drops.begin(),drops.end(),
         [](const ResourceDrop& r){return r.collected;}),drops.end());
 }
-
 void Game::applyCamera() {
     sf::Vector2f pos=player.getPosition();
     float hw=C::WINDOW_W/2.f, hh=C::WINDOW_H/2.f;

@@ -14,9 +14,9 @@ Player::Player()
       speed(C::PLAYER_SPEED), currentWeaponIdx(0), resources(0)
 {
     fallbackBody.setPointCount(3);
-    fallbackBody.setPoint(0, { 20.f,   0.f});
-    fallbackBody.setPoint(1, {-14.f, -13.f});
-    fallbackBody.setPoint(2, {-14.f,  13.f});
+    fallbackBody.setPoint(0, { 20.f,  0.f});
+    fallbackBody.setPoint(1, {-14.f,-13.f});
+    fallbackBody.setPoint(2, {-14.f, 13.f});
     fallbackBody.setOrigin(3.f, 0.f);
     fallbackBody.setFillColor(sf::Color(50,200,255));
     fallbackBody.setOutlineThickness(2.f);
@@ -31,6 +31,7 @@ Player::Player()
     weapons.push_back(Weapon::makePistol());
 }
 
+// ── Загрузка спрайт-листа ────────────────────────────────────
 bool Player::loadTexture(const std::string& path) {
     textureLoaded = texture.loadFromFile(path);
     if (textureLoaded) {
@@ -108,6 +109,7 @@ void Player::updateAim(const sf::RenderWindow& window) {
         + sf::Vector2f(std::cos(rad)*23.f, std::sin(rad)*23.f));
 }
 
+// ── Стрельба ─────────────────────────────────────────────────
 std::vector<Bullet> Player::tryShoot(const sf::RenderWindow& window) {
     Weapon& w = weapons[currentWeaponIdx];
     if (!sf::Mouse::isButtonPressed(sf::Mouse::Left) || !w.canFire())
@@ -146,7 +148,12 @@ void Player::setPosition(sf::Vector2f pos) {
     sprite.setPosition(pos);
     fallbackBody.setPosition(pos);
 }
+void Player::setPosition(sf::Vector2f pos) {
+    sprite.setPosition(pos);
+    fallbackBody.setPosition(pos);
+}
 
+// ── Отрисовка HP ─────────────────────────────────────────────
 void Player::drawHealthBar(sf::RenderWindow& window) const {
     const float barW=54.f, barH=6.f;
     sf::Vector2f pos = sprite.getPosition();
@@ -162,6 +169,7 @@ void Player::drawHealthBar(sf::RenderWindow& window) const {
     window.draw(fill);
 }
 
+// ── Отрисовка ────────────────────────────────────────────────
 void Player::draw(sf::RenderWindow& window) const {
     if (textureLoaded) {
         sf::Sprite ds = sprite;

@@ -14,11 +14,11 @@ namespace C {
     constexpr float PLAYER_RADIUS   = 16.f;
     constexpr float BULLET_RADIUS   = 4.f;
 
+<<<<<<< HEAD
     // Размеры спрайтов — множитель от радиуса
     constexpr float PLAYER_SPRITE_SCALE = 5.5f;  // видимый размер игрока
     constexpr float ENEMY_SPRITE_SCALE  = 5.0f;  // видимый размер врага
 
-    constexpr float BASIC_RADIUS    = 18.f;
     constexpr float BASIC_SPEED     = 90.f;
     constexpr float BASIC_HP        = 50.f;
     constexpr float BASIC_DAMAGE    = 15.f;
@@ -65,4 +65,8 @@ namespace C {
     constexpr int   SHOP_COST_2     = 80;
     constexpr int   SHOP_COST_3     = 130;
     constexpr int   SHOP_MAX_LEVEL  = 3;
-}
+=======
+    constexpr float BASIC_RADIUS    = 18.f;
+    constexpr float BASIC_SPEED     = 90.f;
+    constexpr float BASIC_HP        = 50.f;
+    constexpr float BASIC_DAMAGE    = 15.f;
